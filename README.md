@@ -2,12 +2,20 @@
 misc helpers to test and use the mptcp net-next implementation 
 
 ## Contents
-use_mptcp/
+### use_mptcp/
 
 An utility to force a non MPTCP-enabled application to use MPTCP instead of TCP.
 
-### Usage
+Usage:
 
     ./use_mptcp.sh <app> <app command line>
-    
+
 It will build on the fly wrapper library to hijack the socket() libcall, requires gcc and make
+
+### mpab/
+
+Wrapper to run apache benchmark (ab) with MPTCP, leveraging ```use_mptcp```.
+Requires ngnix and ab.
+
+Usage:
+    ./mpab.sh
