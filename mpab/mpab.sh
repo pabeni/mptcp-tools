@@ -9,6 +9,7 @@ NGINX_PID="$WD/nginx.pid"
 FULLNAME=`readlink -f $0`
 WRAPPER=`dirname $FULLNAME`/../use_mptcp/use_mptcp.sh
 WRAPPER=`readlink -f $WRAPPER`
+TOOL=ab
 
 help()
 {
@@ -88,12 +89,12 @@ ENDL
 	ip netns exec $NS_SRV $WRAPPER nginx -c $WD/nginx.conf &
 	sleep 1
 
-	ip netns exec $NS_CL $WRAPPER ab -c 100 -n 100000 192.168.1.1/1KB
-	ip netns exec $NS_CL $WRAPPER ab -c 100 -n 100000 192.168.1.1/50KB
-	ip netns exec $NS_CL $WRAPPER ab -c 100 -n 100000 192.168.1.1/300KB
+	ip netns exec $NS_CL $WRAPPER $TOOL -c 100 -n 100000 192.168.1.1/1KB
+	ip netns exec $NS_CL $WRAPPER $TOOL -c 100 -n 100000 192.168.1.1/50KB
+	ip netns exec $NS_CL $WRAPPER $TOOL -c 100 -n 100000 192.168.1.1/300KB
 }
 
-while getopts "cdfh" option; do
+while getopts "cdfwh" option; do
 	case $option in
 		c)
 			DUMP=1
@@ -103,6 +104,9 @@ while getopts "cdfh" option; do
 			;;
 		f)
 			FAST=1
+			;;
+		w)
+			TOOL="weighttp -t "$(nproc)
 			;;
 		h)
 			help
