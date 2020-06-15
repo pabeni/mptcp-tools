@@ -62,7 +62,7 @@ run_ab()
 	sed -e 's/error_log .*;/error_log \/tmp\/'$WD_BASE'\/error.log;/' \
 		-e 's/pid .*;/pid \/tmp\/'$WD_BASE'\/nginx.pid;/' \
 		-e 's/\s*access_log .*;/    access_log \/tmp\/'$WD_BASE'\/access.log main;/' \
-		-e 's/\s*root.*;/        root \/tmp\/'$WD_BASE'/' \
+		-e 's/\s*root.*;/        root \/tmp\/'$WD_BASE';/' \
 		-e 's/\s*include .*conf.d.*;/    include \/tmp\/'$WD_BASE'\/root.conf;/' \
 		/etc/nginx/nginx.conf > $WD/nginx.conf
 
