@@ -15,6 +15,7 @@ help()
 	echo -e "syntax:\n$0 [-d] [-c] [-n <name>] [-h]\n"\
 		"\t-d\t debug this script\n" \
 		"\t-c\t capture traffic into pcap.dump\n" \
+		"\t-f\t \"fast\" mode: do not log access\n" \
 		"\t-h\t show this help\n"
 	exit 0
 }
@@ -52,17 +53,22 @@ init()
 	ip -n $NS_CL mptcp limits set subflows 2
 	ip -n $NS_CL mptcp limits set add_addr_accepted 2
 
-	dd if=/dev/null of=$WD/1K bs=1 count=1024
-	dd if=/dev/null of=$WD/50K bs=50 count=1024
-	dd if=/dev/null of=$WD/300K bs=300 count=1024
+	dd if=/dev/null of=$WD/1KB bs=1 count=1024
+	dd if=/dev/null of=$WD/50KB bs=50 count=1024
+	dd if=/dev/null of=$WD/300KB bs=300 count=1024
 }
 
 run_ab()
 {
+	local access="s/\s*access_log .*;/    access_log \/tmp\/$WD_BASE\/access.log main;/"
+	if [ -n "$FAST" ]; then
+		access="s/\s*access_log .*;/    access_log nolog main;/"
+	fi
 	sed -e 's/error_log .*;/error_log \/tmp\/'$WD_BASE'\/error.log;/' \
 		-e 's/pid .*;/pid \/tmp\/'$WD_BASE'\/nginx.pid;/' \
-		-e 's/\s*access_log .*;/    access_log \/tmp\/'$WD_BASE'\/access.log main;/' \
+		-e "$access" \
 		-e 's/\s*root.*;/        root \/tmp\/'$WD_BASE';/' \
+		-e 's/.*\[::\].*//' \
 		-e 's/\s*include .*conf.d.*;/    include \/tmp\/'$WD_BASE'\/root.conf;/' \
 		/etc/nginx/nginx.conf > $WD/nginx.conf
 
@@ -87,13 +93,16 @@ ENDL
 	ip netns exec $NS_CL $WRAPPER ab -c 100 -n 100000 192.168.1.1/300KB
 }
 
-while getopts "cdh" option; do
+while getopts "cdfh" option; do
 	case $option in
 		c)
 			DUMP=1
 			;;
 		d)
 			set -x
+			;;
+		f)
+			FAST=1
 			;;
 		h)
 			help
